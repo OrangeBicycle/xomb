@@ -20,7 +20,11 @@ runtimes/mindrt/*.a
 *-elf
 app/c/hello/chel
 app/d/hello/hello
+app/d/dynhello/hello
 app/fortran/hello/fhel
 app/d/init/init
 app/d/posix/posix
 app/c/simplymm/simplymm
+a.out
+snapshot.txt
+TODO
