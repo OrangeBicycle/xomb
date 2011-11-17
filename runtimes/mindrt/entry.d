@@ -7,7 +7,8 @@
  *
  */
 
-import libos.libdeepmajik.threadscheduler;
+//import libos.libdeepmajik.threadscheduler;
+import libos.libdeepmajik.marketscheduler;
 import libos.libdeepmajik.umm;
 
 import user.ipc;
@@ -116,9 +117,12 @@ void start2(){
 	UserspaceMemoryManager.initialize();
 	XombThread.initialize();
 
-	XombThread* mainThread = XombThread.threadCreate(&start3, argvlen, argvptr);
+	//XombThread* mainThread = XombThread.threadCreate(&start3, argvlen, argvptr);
 
-	mainThread.schedule();
+	//mainThread.schedule();
+
+	XombThread* schedThread = XombThread.threadCreate(&marketscheduler, argvlen, argvptr);
+	schedThread.schedule();
 
 	XombThread._enterThreadScheduler();
 
