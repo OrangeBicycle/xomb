@@ -182,28 +182,9 @@ align(1) struct XombThread {
 	*/
 	void schedule(){
 		XombThread* foo = this;
+		//Place on scheduler's thread stack.
+		/*scheduler.addThread(foo)*/
 
-		asm{
-			lock;
-			inc numThreads;
-
-			//  can't seem to access 'this' from an asm block, so use a local var to get around it
-			mov R11, foo;
-
-			mov R10, [queuePtr];
-
-
-		start_enqueue:
-			mov RAX, [R10 + tailOffset];
-
-		restart_enqueue:
-			mov [R11 + XombThread.next.offsetof], RAX;
-
-			// Compare RAX with m64. If equal, ZF is set and r64 is loaded into m64. Else, clear ZF and load m64 into RAX
-			lock;
-			cmpxchg [R10 + tailOffset], R11;
-			jnz restart_enqueue;
-		}
 	}
 
 	static:
@@ -272,49 +253,12 @@ align(1) struct XombThread {
 	 */
 
 	void threadYield(){
-		asm{
-			naked;
-
-			mov R10, [queuePtr];
-
-			//if(schedQueueRoot == schedQueueTail){return;}// super Fast (single thread) Path
-			mov R9, [R10 + headOffset];
-			mov R8, [R10 + tailOffset];
-			cmp R8,R9;
-			jne skip;
-			ret;
-		skip:
-
-			// save stack ready to ret
-			call getCurrentThread;
-			mov R11, RAX;
-
-			// R10 may get clobbered by function call, so load it again
-			mov R10, [queuePtr];
-
-			pushq RBX;
-			pushq RBP;
-			pushq R12;
-			pushq R13;
-			pushq R14;
-			pushq R15;
-
-			mov [R11+XombThread.rsp.offsetof],RSP;
-
-
-			// stuff old thread onto schedQueueTail
-		start_enqueue:
-			mov RAX, [R10 + tailOffset];
-
-		restart_enqueue:
-			mov [R11 + XombThread.next.offsetof], RAX;
-
-			lock;
-			cmpxchg [R10 + tailOffset], R11;
-			jnz restart_enqueue;
-
-			jmp _enterThreadScheduler;
-		}
+		//Add current thread to the MARKET scheduler, enter the OLD scheduler.
+		XombThread* thread = getCurrentThread();
+		/*TODO Add to Market scheduler as "schedulable"*/
+		thread.schedule();
+		_enterThreadScheduler();
+		
 	}
 
 
