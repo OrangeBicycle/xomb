@@ -16,6 +16,7 @@ import user.ipc;
 import libos.console;
 import libos.keyboard;
 
+import user.activation;
 
 /*
  * --- Upcall Vector Table ---
@@ -25,12 +26,14 @@ import libos.keyboard;
  * 1 - CPU Allocation/Donation (give cpu to thread scheduler)
  * 2 - Child Exit (should trigger cleanup, along with the next one)
  * 3 - Child Error (from kernel, rather than yield)
+ * 4 - Scheduler Activation
  * ? - Inter Process Communication
 */
-void function()[4] UVT = [&start,
+void function()[5] UVT = [&start,
 													&XombThread._enterThreadScheduler,
 													&XombThread._enterThreadScheduler,
-													&XombThread._enterThreadScheduler];
+													&XombThread._enterThreadScheduler,
+													&_entry];
 
 // used by asm function _start to route upcalls
 extern(C) ubyte* UVTbase = cast(ubyte*)UVT.ptr;
