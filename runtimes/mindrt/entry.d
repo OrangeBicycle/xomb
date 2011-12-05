@@ -63,6 +63,8 @@ ubyte* tempStackTop = &tempStack[tempStack.length - 8];
 
 // provided by runtime, calls main
 extern(C) void start3(char[][]);
+extern(C) void marketscheduler(char[][]);
+
 
 // zeros BSS and gives us a temporary (statically allocated) stack
 void start(){
@@ -124,7 +126,7 @@ void start2(){
 
 	//mainThread.schedule();
 
-	XombThread* schedThread = XombThread.threadCreate(&marketscheduler, argvlen, argvptr);
+	XombThread* schedThread = XombThread.threadCreate(&marketscheduler, argvlen, argvptr, 1);
 	schedThread.schedule();
 
 	XombThread._enterThreadScheduler();

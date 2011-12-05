@@ -110,14 +110,54 @@ align(1) struct XombThread {
 		R9  - temp for head of queue
 		R8  - temp for tail of queue
 	 */
-
-	void threadYield(){
+	void threadYieldActivation(XombThread* xt) {
+		//all of below BUT enter_thread, instead call _entry(RDI=4, RSI=Activation) (activation.d)
+	}
+	void threadYield(XombThread* xt){
 		//Add current thread to the MARKET scheduler, enter the OLD scheduler.
-		XombThread* thread = getCurrentThread();
-		/*TODO Add to Market scheduler as "schedulable"*/
-		thread.schedule();
-		_enterThreadScheduler();
-		
+		// save stack ready to ret
+		asm {
+			naked;
+			
+                        call getCurrentThread;
+                        mov R11, RAX;
+                
+                        // R10 may get clobbered by function call, so load it again
+                        mov R10, [queuePtr]; 
+                
+                        pushq RBX;
+                        pushq RBP;
+                        pushq R12;
+                        pushq R13;
+                        pushq R14;
+                        pushq R15;
+
+                        mov [R11+XombThread.rsp.offsetof],RSP;
+			
+			                start_enqueue:
+                        mov RAX, [R10 + tailOffset];
+
+                restart_enqueue:
+                        mov [R11 + XombThread.next.offsetof], RAX;
+
+                        lock;
+                        cmpxchg [R10 + tailOffset], R11;
+                        jnz restart_enqueue;
+		enter_thread:
+                        mov RSP,[RDI+XombThread.rsp.offsetof];
+
+                        popq R15;
+                        popq R14;
+                        popq R13;
+                        popq R12;
+                        popq RBP;
+                        popq RBX;
+
+                        ret;
+
+                        // stuff old thread onto schedQueueTail
+		}
+	
 	}
 
 
